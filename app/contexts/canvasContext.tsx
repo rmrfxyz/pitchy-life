@@ -7,24 +7,40 @@ const universe = Universe.new();
 
 export const themes = {
     light: {
-        borderWidth: 1,
-        gridColor: "#ccc",
         aliveColor: "#fff",
         deadColor: "#000",
     },
     dark: {
-        borderWidth: 1,
-        gridColor: "#ccc",
         aliveColor: "#000",
         deadColor: "#fff",
     }
 };
 
-export const CanvasContext = React.createContext({
-    universe: universe,
-    cell: {
-        base: Cell,
-        size: 5
-    },
+let defaultCell = {
+    ...Cell,
+    size: 5
+};
+
+let defaultGrid = {
+    borderWidth: 1,
+    color: "#ccc",
+};
+
+const getCanvasWidth = () => {
+    return (defaultCell.size + defaultGrid.borderWidth) * universe.width() + defaultGrid.borderWidth;
+}
+
+const getCanvasHeight = () => {
+    return (defaultCell.size + defaultGrid.borderWidth) * universe.height() + defaultGrid.borderWidth;
+}
+
+let defaultCanvas = {
+    cell: defaultCell,
+    grid: defaultGrid,
+    height: getCanvasHeight(),
     theme: themes.dark,
-});
+    universe: universe,
+    width: getCanvasWidth(),
+}
+
+export const CanvasContext = React.createContext(defaultCanvas);
