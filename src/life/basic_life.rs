@@ -1,18 +1,17 @@
+// mod utils;
+
 extern crate js_sys;
-use js_sys::Math;
 extern crate web_sys;
 use web_sys::console;
 
 use std::fmt;
 use wasm_bindgen::prelude::*;
 
-use super::utils;
-
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        console::log_1(&format!( $( $t )* ).into());
-    }
-}
+// macro_rules! log {
+//     ( $( $t:tt )* ) => {
+//         console::log_1(&format!( $( $t )* ).into());
+//     }
+// }
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -38,7 +37,7 @@ pub struct Universe {
 #[wasm_bindgen]
 impl Universe {
     pub fn new() -> Universe {
-        utils::set_panic_hook();
+        // utils::set_panic_hook();
 
         let width = 64;
         let height = 64;
@@ -98,8 +97,8 @@ impl Universe {
     fn get_rand_cells(width: u32, height: u32) -> Vec<Cell> {
         return (0..width * height)
             .map(|_i| {
-                // if Math::random() < 0.5 {
-                if _i > 0 && (2 % _i) > 0 {
+                if js_sys::Math::random() < 0.5 {
+                // if _i > 0 && (2 % _i) > 0 {
                     Cell::Alive
                 } else {
                     Cell::Dead

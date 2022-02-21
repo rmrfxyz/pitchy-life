@@ -11,9 +11,11 @@ import { memory } from "pitchy-life/index_bg.wasm";
 import {CanvasContext} from "@contexts/canvasContext";
 let ctxCanv = null as any; //useContext(CanvasContext);
 let ctx2d = null as any;
+let uniW = 0 as number;
+let uniH = 0 as number;
 
 
-const applyFillRect = () => {
+const applyFillRect = (row:number, col:number) => {
   ctx2d.fillRect(
     col * (ctxCanv.cell.size + ctxCanv.grid.borderWidth) + ctxCanv.grid.borderWidth,
     row * (ctxCanv.cell.size + ctxCanv.grid.borderWidth) + ctxCanv.grid.borderWidth,
@@ -23,12 +25,13 @@ const applyFillRect = () => {
 };
 
 const getIndex = (row:number, column:number) => {
-  return row * ctxCanv.width + column;
+  return row * uniW + column;
 };
 
 const drawCells = () => {
   const cellsPtr = ctxCanv.universe.cells();
-  const cells = new Uint8Array(memory.buffer, cellsPtr, ctxCanv.universe.width * ctxCanv.universe.height);
+  const cells = new Uint8Array(memory.buffer, cellsPtr, uniW * uniH);
+
 
   ctx2d.beginPath();
   // ctx.fillStyle = bitIsSet(idx, cells)
@@ -41,30 +44,25 @@ const drawCells = () => {
 
 
   ctx2d.fillStyle = ctxCanv.theme.aliveColor;
-  for (let row = 0; row < ctxCanv.height; row++){
-      for (let col = 0; col < ctxCanv.width; col++){
+  for (let row = 0; row < uniH; row++){
+      for (let col = 0; col < uniW; col++){
           const idx = getIndex(row, col);  
-          console.dir(cells[idx])
           if (cells[idx] !== ctxCanv.cell.Alive) {
-              continue;
+            continue;
           }
-
-          console.log(ctxCanv.cell.Alive, ' -- ', ctxCanv.theme.aliveColor)
-
-          applyFillRect();
+          applyFillRect(row, col);
       }
   }
 
 
   ctx2d.fillStyle = ctxCanv.theme.deadColor;
-  for (let row = 0; row < ctxCanv.height; row++){
-      for (let col = 0; col < ctxCanv.width; col++){
+  for (let row = 0; row < uniH; row++){
+      for (let col = 0; col < uniW; col++){
           const idx = getIndex(row, col);  
           if (cells[idx] !== ctxCanv.cell.Dead) {
               continue;
           }
-          
-          applyFillRect();
+          applyFillRect(row, col);
       }
   }
 }
@@ -76,14 +74,14 @@ const drawGrid = () => {
   let bw = ctxCanv.grid.borderWidth;
   let cs = ctxCanv.cell.size;
 
-  for (let i = 0; i <= ctxCanv.width; i++){
+  for (let i = 0; i <= uniW; i++){
     ctx2d.moveTo(i * (cs + bw) + bw, 0);
-    ctx2d.lineTo(i * (cs + bw) + bw, (cs + bw) * ctxCanv.height + bw);
+    ctx2d.lineTo(i * (cs + bw) + bw, (cs + bw) * uniH + bw);
   }
 
-  for (let j = 0; j <= ctxCanv.height; j++){
+  for (let j = 0; j <= uniH; j++){
     ctx2d.moveTo(0, j * (cs + bw) + bw);
-    ctx2d.lineTo((cs + bw) * ctxCanv.width + bw, j * (cs + bw) + bw);
+    ctx2d.lineTo((cs + bw) * uniW + bw, j * (cs + bw) + bw);
   }
 
   ctx2d.stroke();
@@ -92,6 +90,10 @@ const drawGrid = () => {
 export default function Canvas(props:any) {
   ctxCanv = useContext(CanvasContext);
   
+  // conveninece
+  uniW = ctxCanv.universe.width();
+  uniH = ctxCanv.universe.height();
+
   const canvasRef = useRef(null);
   let [willStop, setWillStop] = useState(false);
 
@@ -103,11 +105,8 @@ export default function Canvas(props:any) {
     canvas.width = ctxCanv.width;
     canvas.height = ctxCanv.height;
 
-    const cellsPtr = ctxCanv.universe.cells();
-    const cells = new Uint8Array(memory.buffer, cellsPtr, ctxCanv.universe.width * ctxCanv.universe.height);  
-    console.dir(ctxCanv)
-    console.dir(cellsPtr)
-    console.dir(cells)
+    drawGrid();
+    drawCells();
 
     if(!willStop){
 
@@ -115,9 +114,9 @@ export default function Canvas(props:any) {
         ctxCanv.universe.tick();
 
         drawGrid();
-        // drawCells();
+        drawCells();
 
-        // animId = requestAnimationFrame(renderLoop);
+        animId = requestAnimationFrame(renderLoop);
       };
 
       animId = requestAnimationFrame(renderLoop)
