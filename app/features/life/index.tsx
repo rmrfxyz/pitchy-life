@@ -7,13 +7,12 @@ import React, {
 } from "react";
 
 import { memory } from "pitchy-life/index_bg.wasm";
-
 import {CanvasContext} from "@contexts/canvasContext";
+
 let ctxCanv = null as any; //useContext(CanvasContext);
 let ctx2d = null as any;
 let uniW = 0 as number;
 let uniH = 0 as number;
-
 
 const applyFillRect = (row:number, col:number) => {
   ctx2d.fillRect(
