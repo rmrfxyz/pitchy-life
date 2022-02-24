@@ -1,9 +1,9 @@
 import * as React from "react";
-import Canvas from "@components/Canvas";
+import LifeCanvas from "@features/life";
 
 export default () => {
 
   return (
-    <Canvas />
+    <LifeCanvas />
   )
 }

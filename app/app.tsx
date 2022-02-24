@@ -3,15 +3,19 @@ import ReactDOM from 'react-dom';
 import './app.css';
 import Home from '@pages/home';
 import * as serviceWorker from './serviceWorker';
-
+import { Provider } from "react-redux";
+import {store} from "@root/store";
 // import { testAdd } from "pitchy-life";
 // console.log(testAdd(2,3))
 
 ReactDOM.render(
-    <React.StrictMode>
-        <Home />
-    </React.StrictMode>,
-    document.getElementById('root'));
+  <React.StrictMode>
+    <Provider store={store}>
+      <Home />
+    </Provider>
+  </React.StrictMode>,
+  document.getElementById('root')
+);
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

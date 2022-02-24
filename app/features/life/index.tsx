@@ -3,50 +3,62 @@ import React, {
   useState, 
   useRef,
   useLayoutEffect,
-  useContext
+  // useContext
 } from "react";
 
 import { memory } from "pitchy-life/index_bg.wasm";
-import {CanvasContext} from "@contexts/canvasContext";
+// import {CanvasContext} from "@contexts/canvasContext";
 
-let ctxCanv = null as any; //useContext(CanvasContext);
-let ctx2d = null as any;
-let uniW = 0 as number;
-let uniH = 0 as number;
+import { 
+  toggleEvolve,
+  uniTick,
+  selectCellBase,
+  selectGridBase,
+  selectIsEvolving,
+  selectUniverseCells,
+  selectUniverseXY,
+} from "./slice";
+import { 
+    useAppDispatch, 
+    useAppSelector 
+} from "@root/hooks";
+
+let dispatch: any = null;// useAppDispatch();
+
+let cellBase: any = null; // useAppSelector(selectCellBase);
+let gridBase: any = null; // useAppSelector(selectGridBase);
+let uniXY: any = null; // useAppSelector(selectUniverseXY);
+
+// let ctxCanv = null as any; //useContext(CanvasContext);
+let ctx2d = null as any; // TODO: type
+// let uniW = 0 as number;
+// let uniH = 0 as number;
 
 const applyFillRect = (row:number, col:number) => {
   ctx2d.fillRect(
-    col * (ctxCanv.cell.size + ctxCanv.grid.borderWidth) + ctxCanv.grid.borderWidth,
-    row * (ctxCanv.cell.size + ctxCanv.grid.borderWidth) + ctxCanv.grid.borderWidth,
-    ctxCanv.cell.size,
-    ctxCanv.cell.size
+    col * (cellBase.size + cellBase.borderWidth) + gridBase.borderWidth,
+    row * (cellBase.size + cellBase.borderWidth) + gridBase.borderWidth,
+    gridBase.size,
+    gridBase.size
   )
 };
 
 const getIndex = (row:number, column:number) => {
-  return row * uniW + column;
+  return row * uniXY.x + column;
 };
 
-const drawCells = () => {
-  const cellsPtr = ctxCanv.universe.cells();
-  const cells = new Uint8Array(memory.buffer, cellsPtr, uniW * uniH);
-
+const drawCells = (uniCells:any) => {
+  // const uniCells = useAppSelector(selectUniverseCells);
+  const cells = new Uint8Array(memory.buffer, uniCells, uniXY.x * uniXY.y);
 
   ctx2d.beginPath();
-  // ctx.fillStyle = bitIsSet(idx, cells)
-  //     ? ALIVE_COLOR
-  //     : DEAD_COLOR;
-
-  // ctx.fillStyle = cells[idx] === Cell.Alive
-  //     ? ALIVE_COLOR
-  //     : DEAD_COLOR
 
 
-  ctx2d.fillStyle = ctxCanv.theme.aliveColor;
-  for (let row = 0; row < uniH; row++){
-      for (let col = 0; col < uniW; col++){
+  ctx2d.fillStyle = cellBase.aliveColor;
+  for (let row = 0; row < uniXY.y; row++){
+      for (let col = 0; col < uniXY.x; col++){
           const idx = getIndex(row, col);  
-          if (cells[idx] !== ctxCanv.cell.Alive) {
+          if (cells[idx] !== cellBase.Alive) {
             continue;
           }
           applyFillRect(row, col);
@@ -54,11 +66,11 @@ const drawCells = () => {
   }
 
 
-  ctx2d.fillStyle = ctxCanv.theme.deadColor;
-  for (let row = 0; row < uniH; row++){
-      for (let col = 0; col < uniW; col++){
+  ctx2d.fillStyle = cellBase.deadColor;
+  for (let row = 0; row < uniXY.y; row++){
+      for (let col = 0; col < uniXY.x; col++){
           const idx = getIndex(row, col);  
-          if (cells[idx] !== ctxCanv.cell.Dead) {
+          if (cells[idx] !== cellBase.Dead) {
               continue;
           }
           applyFillRect(row, col);
@@ -68,30 +80,45 @@ const drawCells = () => {
 
 const drawGrid = () => {
   ctx2d.beginPath();
-  ctx2d.strokeStyle = ctxCanv.grid.color;
+  ctx2d.strokeStyle = gridBase.color;
 
-  let bw = ctxCanv.grid.borderWidth;
-  let cs = ctxCanv.cell.size;
+  let bw = gridBase.borderWidth;
+  let cs = cellBase.size;
 
-  for (let i = 0; i <= uniW; i++){
+  for (let i = 0; i <= uniXY.x; i++){
     ctx2d.moveTo(i * (cs + bw) + bw, 0);
-    ctx2d.lineTo(i * (cs + bw) + bw, (cs + bw) * uniH + bw);
+    ctx2d.lineTo(i * (cs + bw) + bw, (cs + bw) * uniXY.y + bw);
   }
 
-  for (let j = 0; j <= uniH; j++){
+  for (let j = 0; j <= uniXY.y; j++){
     ctx2d.moveTo(0, j * (cs + bw) + bw);
-    ctx2d.lineTo((cs + bw) * uniW + bw, j * (cs + bw) + bw);
+    ctx2d.lineTo((cs + bw) * uniXY.x + bw, j * (cs + bw) + bw);
   }
 
   ctx2d.stroke();
 }
 
-export default function Canvas(props:any) {
-  ctxCanv = useContext(CanvasContext);
+const getCanvasWidth = () => {
+  return (cellBase.size + gridBase.borderWidth) * uniXY.x + gridBase.borderWidth;
+}
+
+const getCanvasHeight = () => {
+  return (cellBase.size + gridBase.borderWidth) * uniXY.y + gridBase.borderWidth;
+}
+
+export default function LifeCanvas(props:any) {
+  // ctxCanv = useContext(CanvasContext);
   
   // conveninece
-  uniW = ctxCanv.universe.width();
-  uniH = ctxCanv.universe.height();
+  // uniW = ctxCanv.universe.width();
+  // uniH = ctxCanv.universe.height();
+
+  dispatch = useAppDispatch();
+
+  cellBase = useAppSelector(selectCellBase);
+  gridBase = useAppSelector(selectGridBase);
+  uniXY = useAppSelector(selectUniverseXY);
+  const uniCells = useAppSelector(selectUniverseCells);
 
   const canvasRef = useRef(null);
   let [willStop, setWillStop] = useState(false);
@@ -101,27 +128,27 @@ export default function Canvas(props:any) {
     const canvas = canvasRef.current;
     ctx2d = canvas.getContext('2d');  
 
-    canvas.width = ctxCanv.width;
-    canvas.height = ctxCanv.height;
+    canvas.width = getCanvasWidth();
+    canvas.height = getCanvasHeight();
 
     drawGrid();
-    drawCells();
+    drawCells(uniCells);
 
     if(!willStop){
 
       const renderLoop = () => {
-        ctxCanv.universe.tick();
+        dispatch(uniTick());
 
         drawGrid();
-        drawCells();
+        drawCells(uniCells);
 
-        animId = requestAnimationFrame(renderLoop);
+        // animId = requestAnimationFrame(renderLoop);
       };
 
       animId = requestAnimationFrame(renderLoop)
       return () => cancelAnimationFrame(animId);
     }
-  }, [ctx2d, ctxCanv, willStop]);
+  }, [ctx2d, willStop]);
   
   return <canvas ref={canvasRef} {...props}/>
 };
