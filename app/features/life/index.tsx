@@ -34,12 +34,14 @@ let ctx2d = null as any; // TODO: type
 // let uniW = 0 as number;
 // let uniH = 0 as number;
 
+let uniCells:any;
+
 const applyFillRect = (row:number, col:number) => {
   ctx2d.fillRect(
-    col * (cellBase.size + cellBase.borderWidth) + gridBase.borderWidth,
-    row * (cellBase.size + cellBase.borderWidth) + gridBase.borderWidth,
-    gridBase.size,
-    gridBase.size
+    col * (cellBase.size + gridBase.borderWidth) + gridBase.borderWidth,
+    row * (cellBase.size + gridBase.borderWidth) + gridBase.borderWidth,
+    cellBase.size,
+    cellBase.size
   )
 };
 
@@ -47,12 +49,11 @@ const getIndex = (row:number, column:number) => {
   return row * uniXY.x + column;
 };
 
-const drawCells = (uniCells:any) => {
-  // const uniCells = useAppSelector(selectUniverseCells);
+const drawCells = () => {
+  uniCells = selectUniverseCells()
   const cells = new Uint8Array(memory.buffer, uniCells, uniXY.x * uniXY.y);
 
   ctx2d.beginPath();
-
 
   ctx2d.fillStyle = cellBase.aliveColor;
   for (let row = 0; row < uniXY.y; row++){
@@ -107,20 +108,13 @@ const getCanvasHeight = () => {
 }
 
 export default function LifeCanvas(props:any) {
-  // ctxCanv = useContext(CanvasContext);
-  
-  // conveninece
-  // uniW = ctxCanv.universe.width();
-  // uniH = ctxCanv.universe.height();
+  const canvasRef = useRef(null);
 
   dispatch = useAppDispatch();
-
   cellBase = useAppSelector(selectCellBase);
   gridBase = useAppSelector(selectGridBase);
   uniXY = useAppSelector(selectUniverseXY);
-  const uniCells = useAppSelector(selectUniverseCells);
 
-  const canvasRef = useRef(null);
   let [willStop, setWillStop] = useState(false);
 
   let animId = null as number;
@@ -132,7 +126,7 @@ export default function LifeCanvas(props:any) {
     canvas.height = getCanvasHeight();
 
     drawGrid();
-    drawCells(uniCells);
+    drawCells();
 
     if(!willStop){
 
@@ -140,9 +134,9 @@ export default function LifeCanvas(props:any) {
         dispatch(uniTick());
 
         drawGrid();
-        drawCells(uniCells);
+        drawCells();
 
-        // animId = requestAnimationFrame(renderLoop);
+        animId = requestAnimationFrame(renderLoop);
       };
 
       animId = requestAnimationFrame(renderLoop)

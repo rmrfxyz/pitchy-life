@@ -2,20 +2,22 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "app/store";
 import { Universe, Cell } from "pitchy-life";
 
+// universe is not serializable so 
+// it cannot be part of the slice
+// TODO: find a better way to handle it
+const universe = Universe.new();
+
 interface LifeState {
     evolving: boolean,
-    universe: any, // TODO: type
     cellBase: any, // TODO: type
     gridBase: any, // TODO: type
 }
 
-const universe = Universe.new();
-
 let defaultCell = {
     ...Cell,
     size: 5,
-    aliveColor: "#fff",
-    deadColor: "#000",
+    aliveColor: "#000",
+    deadColor: "#fff",
 };
 
 let defaultGrid = {
@@ -27,7 +29,6 @@ const initialState: LifeState = {
     evolving: false,
     cellBase: defaultCell,
     gridBase: defaultGrid,
-    universe: universe,
 }
 
 export const lifeSlice = createSlice({
@@ -42,7 +43,7 @@ export const lifeSlice = createSlice({
           // since the cells are read straight from 
           // wasm shared memory. 
           // Should probably move it somewhere else.
-          // state.universe.tick();
+          universe.tick();
         }
     }
 });
@@ -58,19 +59,20 @@ export const selectIsEvolving = (state: RootState) => {
 
 export const selectUniverseXY = (state: RootState) => {
   return {
-    x: state.life.universe.width,
-    y: state.life.universe.height
+    x: universe.width(),
+    y: universe.height()
   }
 };
-export const selectUniverseCells = (state: RootState) => {
-  return state.life.universe.cells();
+export const selectUniverseCells = () => {
+  // should this be a selector? Maybe move
+  return universe.cells();
 };
 
 export const selectCellBase = (state: RootState) => {
   return state.life.cellBase;
 };
 export const selectGridBase = (state: RootState) => {
-  return state.life.cellBase;
+  return state.life.gridBase;
 };
 
 
