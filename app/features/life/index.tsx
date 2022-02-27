@@ -3,6 +3,7 @@ import React, {
   useState, 
   useRef,
   useLayoutEffect,
+  useEffect,
   // useContext
 } from "react";
 
@@ -18,17 +19,19 @@ import {
   selectUniverseCells,
   selectUniverseXY,
 } from "./slice";
+
 import { 
     useAppDispatch, 
     useAppSelector 
 } from "@root/hooks";
+import { is } from "immer/dist/internal";
 
 let dispatch: any = null;// useAppDispatch();
 
 let cellBase: any = null; // useAppSelector(selectCellBase);
 let gridBase: any = null; // useAppSelector(selectGridBase);
 let uniXY: any = null; // useAppSelector(selectUniverseXY);
-
+let isEvolving: boolean = false;
 // let ctxCanv = null as any; //useContext(CanvasContext);
 let ctx2d = null as any; // TODO: type
 // let uniW = 0 as number;
@@ -107,6 +110,20 @@ const getCanvasHeight = () => {
   return (cellBase.size + gridBase.borderWidth) * uniXY.y + gridBase.borderWidth;
 }
 
+let animId = null as number;
+
+const renderLoop = () => {
+
+  if(isEvolving){
+    dispatch(uniTick());
+
+    drawGrid();
+    drawCells();
+
+    animId = requestAnimationFrame(renderLoop)
+  }
+};
+
 export default function LifeCanvas(props:any) {
   const canvasRef = useRef(null);
 
@@ -115,9 +132,16 @@ export default function LifeCanvas(props:any) {
   gridBase = useAppSelector(selectGridBase);
   uniXY = useAppSelector(selectUniverseXY);
 
-  let [willStop, setWillStop] = useState(false);
+  isEvolving = useAppSelector(selectIsEvolving);
 
-  let animId = null as number;
+  // isEvolving = useAppSelector(selectIsEvolving,(curr, prev)=>{
+  //   console.log('---------------------')
+  //   console.log(prev, ' -- ', curr, ' -- ', isEvolving )
+  //   console.log('---------------------')
+  //   return false;
+  // });
+  // let [willStop, setWillStop] = useState(false);
+
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     ctx2d = canvas.getContext('2d');  
@@ -127,22 +151,24 @@ export default function LifeCanvas(props:any) {
 
     drawGrid();
     drawCells();
+  }, [ctx2d]);
 
-    if(!willStop){
+  useEffect(() => {
+    console.log('useEffect isEvolving ', isEvolving)
 
-      const renderLoop = () => {
-        dispatch(uniTick());
-
-        drawGrid();
-        drawCells();
-
-        animId = requestAnimationFrame(renderLoop);
-      };
-
-      animId = requestAnimationFrame(renderLoop)
-      return () => cancelAnimationFrame(animId);
+    if(isEvolving){
+      renderLoop()
+    }else{
+      cancelAnimationFrame(animId);
+      animId = null;
     }
-  }, [ctx2d, willStop]);
-  
-  return <canvas ref={canvasRef} {...props}/>
+
+  }, [ctx2d, isEvolving])
+  // console.dir(useState())
+  let renderNum = 0;
+  return (
+    <>
+      <canvas ref={canvasRef} {...props}/>
+    </>
+  )
 };

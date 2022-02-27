@@ -8,44 +8,46 @@ import { Universe, Cell } from "pitchy-life";
 const universe = Universe.new();
 
 interface LifeState {
-    evolving: boolean,
-    cellBase: any, // TODO: type
-    gridBase: any, // TODO: type
+  evolving: boolean,
+  cellBase: any, // TODO: type
+  gridBase: any, // TODO: type
 }
 
 let defaultCell = {
-    ...Cell,
-    size: 5,
-    aliveColor: "#000",
-    deadColor: "#fff",
+  ...Cell,
+  size: 5,
+  aliveColor: "#000",
+  deadColor: "#fff",
 };
 
 let defaultGrid = {
-    borderWidth: 1,
-    color: "#ccc",
+  borderWidth: 1,
+  color: "#ccc",
 };
 
 const initialState: LifeState = {
-    evolving: false,
-    cellBase: defaultCell,
-    gridBase: defaultGrid,
+  evolving: false,
+  cellBase: defaultCell,
+  gridBase: defaultGrid,
 }
 
 export const lifeSlice = createSlice({
-    name: 'life',
-    initialState,
-    reducers: {
-        toggleEvolve: (state) => {
-            state.evolving = !state.evolving;
-        },
-        uniTick: (state) => {
-          // this does not actually change the state, 
-          // since the cells are read straight from 
-          // wasm shared memory. 
-          // Should probably move it somewhere else.
-          universe.tick();
-        }
+  name: 'life',
+  initialState,
+  reducers: {
+    toggleEvolve: (state) => {
+      state.evolving = !state.evolving;
+      // console.log('toggleEvolve state.evolving ', state.evolving)
+    },
+    uniTick: (state) => {
+      // alert(2)
+      // this does not actually change the state, 
+      // since the cells are read straight from 
+      // wasm shared memory. 
+      // Should probably move it somewhere else.
+      universe.tick();
     }
+  },
 });
 
 export const { 
@@ -74,7 +76,6 @@ export const selectCellBase = (state: RootState) => {
 export const selectGridBase = (state: RootState) => {
   return state.life.gridBase;
 };
-
 
 export default lifeSlice.reducer;
 
