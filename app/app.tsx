@@ -9,11 +9,9 @@ import {store} from "@root/store";
 // console.log(testAdd(2,3))
 
 ReactDOM.render(
-  <React.StrictMode>
     <Provider store={store}>
       <Home />
-    </Provider>
-  </React.StrictMode>,
+    </Provider>,
   document.getElementById('root')
 );
 

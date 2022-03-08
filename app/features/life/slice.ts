@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "app/store";
 import { Universe, Cell } from "pitchy-life";
 
@@ -35,12 +35,18 @@ export const lifeSlice = createSlice({
   name: 'life',
   initialState,
   reducers: {
-    toggleEvolve: (state) => {
-      state.evolving = !state.evolving;
-      // console.log('toggleEvolve state.evolving ', state.evolving)
+    startEvolve: (state) => {
+      console.dir('startEvolve ', state)
+      state.evolving = true;
+    },
+    stopEvolve: (state) => {
+      console.dir('stopEvolve ', state)
+      state.evolving = false;
+    },
+    shuffle: () => {
+      universe.shuffle();
     },
     uniTick: (state) => {
-      // alert(2)
       // this does not actually change the state, 
       // since the cells are read straight from 
       // wasm shared memory. 
@@ -51,7 +57,9 @@ export const lifeSlice = createSlice({
 });
 
 export const { 
-  toggleEvolve,
+  shuffle,
+  startEvolve,
+  stopEvolve,
   uniTick,
 } = lifeSlice.actions;
 

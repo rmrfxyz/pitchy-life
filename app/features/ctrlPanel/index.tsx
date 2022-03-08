@@ -8,9 +8,13 @@ export default function CtrlPanel (props: any) {
   
   const dispatch = useAppDispatch();
 
-  const playPause = (evt:MouseEvent): void => {
-    dispatch({type: "life/toggleEvolve"});
+  const playPause = () => {
+    dispatch({type: `life/${isEvolving ? 'stopEvolve' : 'startEvolve'}`});
   };
+
+  const shuffle = () => {
+    dispatch({type: "life/shuffle"})
+  }
 
   let isEvolving = useAppSelector(selectIsEvolving);
 
@@ -21,7 +25,9 @@ export default function CtrlPanel (props: any) {
       { isEvolving ? "pause ⏸" : "play ▶"}
     </button>
 
-    <button className="shuffleBtn">
+    <button className="shuffleBtn"
+      onClick={shuffle}
+    >
       shuffle
     </button>
     
@@ -35,6 +41,7 @@ export default function CtrlPanel (props: any) {
       max="10" 
       step="1" 
       value="1" 
+      onChange={(evt) => {console.dir(evt)}}
     />
     
   </div>);

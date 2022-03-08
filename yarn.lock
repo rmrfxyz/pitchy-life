@@ -1055,6 +1055,11 @@
     redux-thunk "^2.4.1"
     reselect "^4.1.5"
 
+"@rtk-incubator/action-listener-middleware@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@rtk-incubator/action-listener-middleware/-/action-listener-middleware-0.8.0.tgz#c79c7a1f78be388db4e73feccb1c205024be4e66"
+  integrity sha512-TQVbq5DU21vGjtw11Eexb5aLKIaVno9zQLvqfXrBwbdChyBuW9VKew7Nh8Th9YBbGL7cnr0R5FLV24I7slVRkQ==
+
 "@types/body-parser@*":
   version "1.19.2"
   resolved "https://registry.yarnpkg.com/@types/body-parser/-/body-parser-1.19.2.tgz#aea2059e28b7658639081347ac4fab3de166e6f0"

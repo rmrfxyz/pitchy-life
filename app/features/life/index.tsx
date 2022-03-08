@@ -4,14 +4,14 @@ import React, {
   useRef,
   useLayoutEffect,
   useEffect,
-  // useContext
 } from "react";
 
 import { memory } from "pitchy-life/index_bg.wasm";
-// import {CanvasContext} from "@contexts/canvasContext";
 
-import { 
-  toggleEvolve,
+import lifeReducer, { 
+  shuffle,
+  startEvolve,
+  stopEvolve,
   uniTick,
   selectCellBase,
   selectGridBase,
@@ -22,20 +22,19 @@ import {
 
 import { 
     useAppDispatch, 
-    useAppSelector 
+    useAppSelector,
 } from "@root/hooks";
-import { is } from "immer/dist/internal";
 
-let dispatch: any = null;// useAppDispatch();
+import { configureStore, isAnyOf } from "@reduxjs/toolkit";
+import { addListener } from '@rtk-incubator/action-listener-middleware';
 
-let cellBase: any = null; // useAppSelector(selectCellBase);
-let gridBase: any = null; // useAppSelector(selectGridBase);
-let uniXY: any = null; // useAppSelector(selectUniverseXY);
+// TODO: types
+let dispatch: any = null;
+let cellBase: any = null;
+let gridBase: any = null;
+let uniXY: any = null;
 let isEvolving: boolean = false;
-// let ctxCanv = null as any; //useContext(CanvasContext);
-let ctx2d = null as any; // TODO: type
-// let uniW = 0 as number;
-// let uniH = 0 as number;
+let ctx2d = null as any; 
 
 let uniCells:any;
 
@@ -53,7 +52,7 @@ const getIndex = (row:number, column:number) => {
 };
 
 const drawCells = () => {
-  uniCells = selectUniverseCells()
+  uniCells = selectUniverseCells();
   const cells = new Uint8Array(memory.buffer, uniCells, uniXY.x * uniXY.y);
 
   ctx2d.beginPath();
@@ -68,7 +67,6 @@ const drawCells = () => {
           applyFillRect(row, col);
       }
   }
-
 
   ctx2d.fillStyle = cellBase.deadColor;
   for (let row = 0; row < uniXY.y; row++){
@@ -124,7 +122,7 @@ const renderLoop = () => {
   }
 };
 
-export default function LifeCanvas(props:any) {
+export default function LifeCanvas(props: any) {
   const canvasRef = useRef(null);
 
   dispatch = useAppDispatch();
@@ -133,14 +131,6 @@ export default function LifeCanvas(props:any) {
   uniXY = useAppSelector(selectUniverseXY);
 
   isEvolving = useAppSelector(selectIsEvolving);
-
-  // isEvolving = useAppSelector(selectIsEvolving,(curr, prev)=>{
-  //   console.log('---------------------')
-  //   console.log(prev, ' -- ', curr, ' -- ', isEvolving )
-  //   console.log('---------------------')
-  //   return false;
-  // });
-  // let [willStop, setWillStop] = useState(false);
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -154,8 +144,6 @@ export default function LifeCanvas(props:any) {
   }, [ctx2d]);
 
   useEffect(() => {
-    console.log('useEffect isEvolving ', isEvolving)
-
     if(isEvolving){
       renderLoop()
     }else{
@@ -163,9 +151,19 @@ export default function LifeCanvas(props:any) {
       animId = null;
     }
 
+    const unSub = dispatch(
+      addListener({
+        actionCreator: shuffle,
+        effect: (action, listenerApi) => {
+          dispatch(stopEvolve());
+          drawGrid();
+          drawCells();
+        }
+      })
+    )
+
   }, [ctx2d, isEvolving])
-  // console.dir(useState())
-  let renderNum = 0;
+
   return (
     <>
       <canvas ref={canvasRef} {...props}/>
